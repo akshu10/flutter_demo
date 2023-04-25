@@ -1,20 +1,18 @@
 import 'dart:convert';
-import 'dart:html';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import 'Home.dart';
-import 'model/User.dart';
+import 'model/app_state.dart';
+import 'model/auth_response.dart';
 
 var client = http.Client();
 
-Future<void> login(email, password) async {
-  print('Email: ${email}');
-  print('Password: ${password}');
-
+Future<String> login(email, password) async {
   try {
-    var url = Uri.https('rafflebox-test.ca', 'auth/token');
+    var url = Uri.https('api.rafflebox-test.ca', 'auth/token');
     var response = await http.post(url, headers: {
       'Accept': 'application/json',
     }, body: {
@@ -22,10 +20,26 @@ Future<void> login(email, password) async {
       'password': password
     });
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    var responseToJson = jsonDecode(response.body);
+
+    if (response.statusCode == 201) {
+      var token = responseToJson['data']['token'];
+      var user = responseToJson['data']['data'];
+
+      var authResponse = AuthResponse.fromJson({
+        "token": token,
+        "user": user,
+      });
+
+      print('Auth Response Object: ${authResponse.token}');
+      print('Auth Response Object: ${authResponse.user}');
+
+      return responseToJson.token;
+    }
   } catch (error) {
     print(error);
+  } finally {
+    return '';
   }
 
   // if (response.statusCode == 200) {
@@ -40,8 +54,8 @@ Future<void> login(email, password) async {
 }
 
 class Login extends StatelessWidget {
-  var emailController = new TextEditingController();
-  var passwordController = new TextEditingController();
+  var emailController = TextEditingController();
+  var passwordController = TextEditingController();
 
   final _loginFormKey = GlobalKey<FormState>();
 
@@ -49,6 +63,7 @@ class Login extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    dynamic response;
     return Scaffold(
       body: Center(
         child: Column(
@@ -73,9 +88,9 @@ class Login extends StatelessWidget {
                     ),
                     TextFormField(
                       controller: passwordController,
+                      obscureText: true,
                       decoration: const InputDecoration(
-                        hintText: 'Enter your password',
-                      ),
+                          hintText: 'Enter your password'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter some text';
@@ -87,12 +102,21 @@ class Login extends StatelessWidget {
                         padding: const EdgeInsets.all(12.0),
                         child: ElevatedButton(
                             onPressed: () async => {
-                                  await login(emailController.text,
+                                  //  Call a setter on state
+                                  Provider.of<AppState>(context, listen: false)
+                                      .addItem('test'),
+                                  Provider.of<AppState>(context, listen: false)
+                                      .setUser({
+                                    "email": emailController.text,
+                                    'password': passwordController.text
+                                  }),
+                                  response = await login(emailController.text,
                                       passwordController.text),
 
-                                  // Navigator.of(context).push(
-                                  //     MaterialPageRoute(
-                                  //         builder: (context) => Home()))
+                                  // ignore: avoid_print
+                                  print('Response: $response'),
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => const Home()))
                                 },
                             child: const Text('Login'))),
                   ],
