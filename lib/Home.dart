@@ -9,24 +9,28 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Column(
-          children: [
-            const Text('Home'),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/login');
-                },
-                child:
-                    Provider.of<AppState>(context, listen: false).items.isEmpty
-                        ? const Text('Add Item')
-                        : Text(
-                            Provider.of<AppState>(context, listen: false)
-                                .items
-                                .toString(),
-                          )),
-          ],
-        ),
-      ),
+          child: Column(
+        children: [
+          const Text('Home Page'),
+          Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ElevatedButton(
+                  onPressed: () {
+                    Provider.of<AppState>(context, listen: false)
+                        .addItem('test');
+                  },
+                  child: const Text('Add Item'))),
+          Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: ListView.builder(
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: Provider.of<AppState>(context).items.length,
+                  itemBuilder: (context, index) {
+                    return Text(Provider.of<AppState>(context).items[index]);
+                  }))
+        ],
+      )),
     );
   }
 }

@@ -102,9 +102,6 @@ class Login extends StatelessWidget {
                         padding: const EdgeInsets.all(12.0),
                         child: ElevatedButton(
                             onPressed: () async => {
-                                  //  Call a setter on state
-                                  Provider.of<AppState>(context, listen: false)
-                                      .addItem('test'),
                                   Provider.of<AppState>(context, listen: false)
                                       .setUser({
                                     "email": emailController.text,
